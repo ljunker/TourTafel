@@ -27,7 +27,6 @@
 		2A6753552DA5014000B3D3BB /* TourTafel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TourTafel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2A6753642DA5014100B3D3BB /* TourTafelTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TourTafelTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2A67536E2DA5014100B3D3BB /* TourTafelUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TourTafelUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		2A6753912DA557F600B3D3BB /* test.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = test.gpx; path = ../../../../test.gpx; sourceTree = "<group>"; };
 		2A6753922DA5587600B3D3BB /* dpm.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = dpm.gpx; path = ../../../../dpm.gpx; sourceTree = "<group>"; };
 		2A6753932DA5587E00B3D3BB /* technikmuseum.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = technikmuseum.gpx; path = ../../../../technikmuseum.gpx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -80,7 +79,6 @@
 			children = (
 				2A6753932DA5587E00B3D3BB /* technikmuseum.gpx */,
 				2A6753922DA5587600B3D3BB /* dpm.gpx */,
-				2A6753912DA557F600B3D3BB /* test.gpx */,
 				2A6753572DA5014000B3D3BB /* TourTafel */,
 				2A6753672DA5014100B3D3BB /* TourTafelTests */,
 				2A6753712DA5014100B3D3BB /* TourTafelUITests */,

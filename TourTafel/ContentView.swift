@@ -36,9 +36,14 @@ struct ContentView: View {
     }
     
     func speak(_ text: String) {
+        let siriVoices = AVSpeechSynthesisVoice.speechVoices().filter {
+            $0.language == "de-DE"
+        }
+        for voice in siriVoices {
+            print(voice)
+        }
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "de-DE")
-        utterance.rate = 0.5
+        utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.siri_Martin_de-DE_compact")
         speechSynth.speak(utterance)
     }
 

@@ -20,7 +20,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObject {
         }
     }
     
-    private var lastKnownLocation: CLLocation?
+    var lastKnownLocation: CLLocation?
     
     override init() {
         super.init( )
@@ -45,6 +45,5 @@ class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObject {
                 return
             }
         }
-        self.nearbyTafel = nil
     }
 }

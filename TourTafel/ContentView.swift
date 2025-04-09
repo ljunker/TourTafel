@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var loading = false
     @State private var speechSynth = AVSpeechSynthesizer()
     @State private var currentTafelID: UUID?
+    @State private var showingTafelList = false
     
     func loadInfo(for tafel: Tafel) {
         Task {
@@ -36,27 +37,22 @@ struct ContentView: View {
     }
     
     func speak(_ text: String) {
-        let siriVoices = AVSpeechSynthesisVoice.speechVoices().filter {
-            $0.language == "de-DE"
-        }
-        for voice in siriVoices {
-            print(voice)
-        }
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.siri_Martin_de-DE_compact")
         speechSynth.speak(utterance)
     }
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Unterrichtungstafeln")
-                .font(.title)
-            
-            if let tafel = locationManager.nearbyTafel {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(tafel.title).font(.headline)
-                    if let imageURL = summary?.thumbnail?.source,
-                       let url = URL(string: imageURL) {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("Unterrichtungstafeln")
+                    .font(.title)
+                
+                if let tafel = locationManager.nearbyTafel {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(tafel.title).font(.headline)
+                        if let imageURL = summary?.thumbnail?.source,
+                           let url = URL(string: imageURL) {
                             AsyncImage(url: url) { phase in
                                 switch phase {
                                 case .empty: ProgressView()
@@ -75,46 +71,55 @@ struct ContentView: View {
                                 }
                             }
                         }
-                    Text(tafel.info)
-                    if loading {
-                        ProgressView()
-                    } else if let summary {
-                        Divider()
-                        Text(summary.extract)
-                            .font(.subheadline)
-                        if let url = summary.content_urls?.desktop.page {
-                            Link("Wikipedia", destination: URL(string: url)!)
+                        Text(tafel.info)
+                        if loading {
+                            ProgressView()
+                        } else if let summary {
+                            Divider()
+                            Text(summary.extract)
+                                .font(.subheadline)
+                            if let url = summary.content_urls?.desktop.page {
+                                Link("Wikipedia", destination: URL(string: url)!)
+                            }
                         }
                     }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                } else {
+                    Text("Keine Tafel in der Nähe.")
+                        .foregroundColor(.secondary)
                 }
-                .onChange(of: locationManager.nearbyTafel) { oldTafel, newTafel in
-                    guard let tafel = newTafel else { return }
-                    
-                    if tafel.id != currentTafelID {
-                        currentTafelID = tafel.id
-                        summary = nil
-                        loadInfo(for: tafel)
-                    }
-                }
-                .onAppear() {
-                    if summary == nil {
-                        loadInfo(for: locationManager.nearbyTafel!)
-                    }
+                Button("Alle Tafeln anzeigen") {
+                    showingTafelList = true
                 }
                 .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
-            } else {
-                Text("Keine Tafel in der Nähe.")
-                    .foregroundColor(.secondary)
+                .navigationDestination(isPresented: $showingTafelList) {
+                    TafelListView(tafeln: tafeln) { selected in
+                        print(selected.title)
+                        locationManager.nearbyTafel = selected
+                        showingTafelList = false
+                    }
+                    .environmentObject(locationManager)
+                }
             }
-        }
-        .padding()
-        .onAppear {
-            if tafeln.isEmpty {
-                GeoJSONImporter.importTafeln(from: "tafel", into: modelContext)
+            .padding()
+            .onAppear {
+                if tafeln.isEmpty {
+                    GeoJSONImporter.importTafeln(from: "tafel", into: modelContext)
+                }
+                locationManager.tafeln = tafeln
             }
-            locationManager.tafeln = tafeln
+            .onChange(of: locationManager.nearbyTafel) { oldTafel, newTafel in
+                print("👀 ContentView saw new nearbyTafel: \(newTafel?.title ?? "nil")")
+                guard let tafel = newTafel else { return }
+                
+                if tafel.id != currentTafelID {
+                    currentTafelID = tafel.id
+                    summary = nil
+                    loadInfo(for: tafel)
+                }
+            }
         }
     }
 }

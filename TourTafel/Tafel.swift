@@ -15,6 +15,7 @@ class Tafel {
     var info: String
     var latitude: Double
     var longitude: Double
+    var resolvedWikipediaTitle: String?
     
     init(id: UUID = UUID(), title: String, info: String, latitude: Double, longitude: Double) {
         self.id = id

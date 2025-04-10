@@ -25,7 +25,7 @@ struct ContentView: View {
             loading = true
             speak(tafel.title)
             do {
-                summary = try await WikipediaService.fetchSummary(for: tafel.title)
+                summary = try await WikipediaService.fetchSummary(for: tafel, context: modelContext)
                 if summary != nil && summary?.extract != nil {
                     speak(summary!.extract)
                 }
@@ -36,7 +36,49 @@ struct ContentView: View {
         }
     }
     
+    func deleteAllTafeln(context: ModelContext) {
+        let descriptor = FetchDescriptor<Tafel>()
+        if let tafeln = try? context.fetch(descriptor) {
+            for tafel in tafeln {
+                context.delete(tafel)
+            }
+            try? context.save()
+            print("🧹 Deleted \(tafeln.count) Tafeln")
+        }
+    }
+    
+    func resetAndReloadTafeln(context: ModelContext) {
+        deleteAllTafeln(context: context)
+        GeoJSONImporter.importTafeln(from: "tafel", into: context)
+    }
+    
+    func debug_printAllEmptyTafeln() {
+        Task {
+            var count = 0
+            for tafel in tafeln {
+                do {
+                    let summary = try await WikipediaService.fetchSummary(for: tafel, context: modelContext)
+                    if summary == nil || summary!.extract.isEmpty || summary!.type == "disambiguation" {
+                        count += 1
+                        print("❌ No useful Wikipedia entry for: \(tafel.title)")
+                    }
+                } catch {
+                    count += 1
+                    print("⚠️ Error fetching Wikipedia for \(tafel.title): \(error)")
+                }
+            }
+            print("Not found: \(count)")
+        }
+    }
+    
     func speak(_ text: String) {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("🔇 Failed to set audio session: \(error)")
+        }
+        
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.siri_Martin_de-DE_compact")
         speechSynth.speak(utterance)
@@ -96,22 +138,28 @@ struct ContentView: View {
                 .padding()
                 .navigationDestination(isPresented: $showingTafelList) {
                     TafelListView(tafeln: tafeln) { selected in
-                        print(selected.title)
                         locationManager.nearbyTafel = selected
                         showingTafelList = false
                     }
                     .environmentObject(locationManager)
                 }
+                /*#if DEBUG
+                Button("DEBUG: Show Empty") {
+                    debug_printAllEmptyTafeln()
+                }
+                #endif*/
             }
             .padding()
             .onAppear {
+                /*#if DEBUG
+                resetAndReloadTafeln(context: modelContext)
+                #endif*/
                 if tafeln.isEmpty {
                     GeoJSONImporter.importTafeln(from: "tafel", into: modelContext)
                 }
                 locationManager.tafeln = tafeln
             }
             .onChange(of: locationManager.nearbyTafel) { oldTafel, newTafel in
-                print("👀 ContentView saw new nearbyTafel: \(newTafel?.title ?? "nil")")
                 guard let tafel = newTafel else { return }
                 
                 if tafel.id != currentTafelID {

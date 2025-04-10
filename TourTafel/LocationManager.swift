@@ -15,7 +15,6 @@ class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObject {
     @Published var nearbyTafel: Tafel?
     var tafeln: [Tafel] = [] {
         didSet {
-            print("INFO: Tafeln updated: \(tafeln.count)")
             lastKnownLocation.map(checkNearbyTafeln)
         }
     }
